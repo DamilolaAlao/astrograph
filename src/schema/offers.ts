@@ -60,12 +60,15 @@ export const typeDefs = gql`
     sellingAssetEq: AssetInput
   }
 
-  "Offers list sorting options"
-  enum OfferOrderByInput {
-    "Sort by id in descending order"
-    id_DESC
-    "Sort by id in ascending order"
-    id_ASC
+  type OfferConnection {
+    pageInfo: PageInfo!
+    nodes: [Offer]
+    edges: [OfferEdge]
+  }
+
+  type OfferEdge {
+    cursor: String!
+    node: Offer
   }
 
   "Represents best bid/ask pair for the pair of assets"
@@ -82,10 +85,12 @@ export const typeDefs = gql`
       seller: AccountID
       selling: AssetCode
       buying: AssetCode
-      orderBy: OfferOrderByInput
-      first: Int!
-      offset: Int
-    ): [Offer]
+      first: Int
+      after: String
+      last: Int
+      before: String
+      order: Order
+    ): OfferConnection
     "Get current best bid/ask offer for the given pair of assets"
     tick(selling: AssetID!, buying: AssetID!): Tick
   }

@@ -12,7 +12,7 @@ import {
   IHorizonTransactionData
 } from "../../datasource/types";
 
-import { Account, Balance, DataEntry, Effect, Operation, Trade, Transaction } from "../../model";
+import { Account, Balance, DataEntry, Effect, Offer, Operation, Trade, Transaction } from "../../model";
 import {
   BalanceFactory,
   EffectFactory,
@@ -26,6 +26,7 @@ import { IApolloContext } from "../../graphql_server";
 import { joinToMap } from "../../util/array";
 
 import { ACCOUNT, pubsub } from "../../pubsub";
+import { SortOrder } from "../../util/paging";
 
 const dataEntriesResolver = createBatchResolver<Account, DataEntry[]>((source: any) =>
   db.dataEntries.findAllByAccountIDs(_.map(source, "id"))
@@ -95,7 +96,15 @@ export default {
         TradeFactory.fromHorizon(r)
       );
     },
+    offers: async (root: Account, args: any, ctx: any) => {
+      const { first, last, after, before, order = SortOrder.DESC, ...criteria } = args;
 
+      criteria.seller = root.id;
+
+      const offers = await db.offers.findAll(criteria, { first, last, after, before, order });
+
+      return makeConnection<Offer>(offers);
+    },
     inflationDestination: resolvers.account
   },
   Query: {
